@@ -42,13 +42,17 @@ Test set: 7,650
 ## Installation 💽
 This repo depends on the master branch of [Hugging Face - Transformers library](https://github.com/huggingface/transformers). First you need to clone the transformers repository and then install it locally (preferably inside a virtual environment) with `pip install -e ".[flax]"`.
 
-Conda environment setup:
+Environment setup in Ubuntu or Windows WSL:
 ```
-conda create --name medclip python=3.11 
+conda create --name medclip python=3.10 
 conda activate medclip 
-conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia 
-conda install -c huggingface transformers 
-pip install huggingface-hub jax flax streamlit optax pandas matplotlib watchdog tables streamlit 
+conda install pytorch torchvision torchaudio pytorch-cuda=11 -c pytorch -c nvidia  
+# cd to your repoisitory folder, like C:/Development  
+git clone https://github.com/huggingface/transformers.git  
+cd transformers  
+pip install -e ".[flax]"  
+pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html 
+pip install --upgrade flax streamlit optax pandas matplotlib watchdog tables chardet
 ```
 
 ## The Model ⚙️
