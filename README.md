@@ -52,7 +52,7 @@ git clone https://github.com/huggingface/transformers.git
 cd transformers
 pip install -e ".[flax]"
 pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-pip install --upgrade flax streamlit optax pandas matplotlib watchdog tables chardet tensorboard
+pip install --upgrade flax streamlit optax pandas matplotlib watchdog tables chardet tensorboard ipywidgets
 ```
 
 ## The Model ⚙️
