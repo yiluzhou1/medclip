@@ -48,9 +48,9 @@ from flax import jax_utils
 from flax.jax_utils import unreplicate
 from flax.training import train_state
 from flax.training.common_utils import get_metrics, shard, shard_prng_key
-from medclip.modeling_hybrid_clip import FlaxHybridCLIP
 from transformers import AutoTokenizer, HfArgumentParser, TrainingArguments, is_tensorboard_available, set_seed
-
+sys.path.append('../')
+from medclip.modeling_hybrid_clip import FlaxHybridCLIP
 
 logger = logging.getLogger(__name__)
 

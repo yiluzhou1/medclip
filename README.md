@@ -46,14 +46,15 @@ Environment setup in Ubuntu or Windows WSL:
 ```
 conda create --name medclip python=3.10
 conda activate medclip
-conda install pytorch torchvision torchaudio pytorch-cuda=11 -c pytorch -c nvidia
+# conda install pytorch torchvision torchaudio pytorch-cuda=11 -c pytorch -c nvidia
+pip3 install torch torchvision torchaudio
 pip install nvidia-cudnn-cu11 tensorflow==2.12
 # cd to your repoisitory folder, like C:/Development
 git clone https://github.com/huggingface/transformers.git
 cd transformers
 pip install -e ".[flax]"
 pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-pip install --upgrade flax streamlit optax pandas matplotlib watchdog tables chardet nvidia-tensorrt ipywidgets
+pip install --upgrade flax streamlit optax pandas matplotlib watchdog tables chardet nvidia-tensorrt ipywidgets accelerate
 ```
 
 ## The Model ⚙️
