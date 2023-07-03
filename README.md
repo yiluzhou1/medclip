@@ -47,6 +47,8 @@ Environment setup in Ubuntu or Windows WSL:
 conda create --name medclip python=3.10
 conda activate medclip
 conda install pytorch torchvision torchaudio pytorch-cuda=11 -c pytorch -c nvidia
+pip install nvidia-tensorrt
+pip install nvidia-cudnn-cu11 tensorflow==2.12
 # cd to your repoisitory folder, like C:/Development
 git clone https://github.com/huggingface/transformers.git
 cd transformers
