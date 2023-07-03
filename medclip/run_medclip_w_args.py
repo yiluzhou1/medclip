@@ -1,14 +1,19 @@
 import subprocess
+import os
+
+# Enter data folder name
+dataset_folder_name = 'roco-dataset'
+folder_temp = os.path.join('../Experiments', dataset_folder_name)
 
 # Define the parameters for the Python script
 # Make sure these values are correct for your specific use case
-script_path = './medclip/run_medclip.py'
-output_dir = './snapshots/vision_augmented_biobert'
+script_path = '../medclip/run_medclip.py'
+output_dir = os.path.join('../Experiments', dataset_folder_name, 'snapshots', 'vision_augmented_biobert')
 text_model_name_or_path = 'allenai/scibert_scivocab_uncased'
 vision_model_name_or_path = 'openai/clip-vit-base-patch32'
 tokenizer_name = 'allenai/scibert_scivocab_uncased'
-train_file = 'data/train_dataset_new.json'
-validation_file = 'data/valid_dataset_new.json'
+train_file = os.path.join('../Experiments', dataset_folder_name, f'train_dataset.json')
+validation_file = os.path.join('../Experiments', dataset_folder_name, f'validation_dataset.json')
 do_train = True
 do_eval = True
 num_train_epochs = 40
