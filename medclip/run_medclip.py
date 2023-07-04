@@ -62,7 +62,7 @@ logger = logging.getLogger(__name__)
 has_tensorboard = is_tensorboard_available()
 if has_tensorboard:
     try:
-        from flax.metrics.tensorboard import SummaryWriter
+        from flax.metrics.tensorboard import SummaryWriter # Need to install tensorflow
     except ImportError as ie:
         has_tensorboard = False
         print(f"Unable to display metrics through TensorBoard because some package are not installed: {ie}")

@@ -46,8 +46,15 @@ Environment setup in Ubuntu or Windows WSL:
 ```
 conda create --name medclip python=3.10
 conda activate medclip
-# conda install pytorch torchvision torchaudio pytorch-cuda=11 -c pytorch -c nvidia
-pip3 install torch torchvision torchaudio
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+    # Optional step: If you don't like CUDA or cdDNN installed in your system, you may install them inside conda environment.
+    conda install -c "nvidia/label/cuda-11.8.0" cuda-nvcc
+    # Follow the steps in this article to set LD_LIBRARY_PATH in conda environment https://jrkwon.com/2022/11/22/cuda-and-cudnn-inside-a-conda-env/ 
+    # Restart the conda environment
+    conda deactivate
+    conda activate medclip
+
 pip install nvidia-cudnn-cu11 tensorflow==2.12
 # cd to your repoisitory folder, like C:/Development
 git clone https://github.com/huggingface/transformers.git
