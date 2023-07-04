@@ -53,6 +53,9 @@ from transformers import AutoTokenizer, HfArgumentParser, TrainingArguments, is_
 sys.path.append('../')
 from medclip.modeling_hybrid_clip import FlaxHybridCLIP
 
+import warnings
+warnings.filterwarnings("ignore", ".*does not have profile information.*")
+
 logger = logging.getLogger(__name__)
 
 # Cache the result
