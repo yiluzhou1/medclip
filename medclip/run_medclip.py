@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
+import tensorrt
 import torch
 from torchvision.datasets import VisionDataset
 from torchvision.io import ImageReadMode, read_image
@@ -177,7 +178,7 @@ class Transform(torch.nn.Module):
     def __init__(self, image_size):
         super().__init__()
         self.transforms = torch.nn.Sequential(
-            Resize([image_size], interpolation=InterpolationMode.BICUBIC),
+            Resize([image_size], interpolation=InterpolationMode.BICUBIC, antialias=True),
             CenterCrop(image_size),
             GaussianBlur(3, sigma=(0.05, 0.2)),
             RandomAutocontrast(p=0.5),

@@ -1,6 +1,12 @@
 import subprocess
 import os
 
+# Specify which GPU(s) to use: (number starts from 0)
+# "0":   using GPU 0
+# "0,1": using GPU 0 & 1
+# "1":   using GPU 1
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 # Enter data folder name
 dataset_folder_name = 'roco-dataset'
 folder_temp = os.path.join('../Experiments', dataset_folder_name)
