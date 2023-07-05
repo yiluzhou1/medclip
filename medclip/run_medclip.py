@@ -381,7 +381,7 @@ def main():
 
     # Use collate function to tokenizer the text and convert the processed images to numpy
     def collate_fn(examples):
-        pixel_values = torch.stack([example[0] for example in examples]).permute(0, 2, 3, 1).numpy()
+        pixel_values = torch.stack([example[0] for example in examples]).permute(0, 2, 3, 1).numpy() #from NCHW to NHWC
         # pixel_values = torch.stack([example[0] for example in examples]).numpy()
         captions = [example[1] for example in examples]
         inputs = tokenizer(captions, max_length=data_args.max_seq_length, padding="max_length", return_tensors="np",
