@@ -5,7 +5,7 @@ import os
 # "0":   using GPU 0
 # "0,1": using GPU 0 & 1
 # "1":   using GPU 1
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # Enter data folder name
 dataset_folder_name = 'roco-dataset'
@@ -24,8 +24,8 @@ do_train = True
 do_eval = True
 num_train_epochs = 40
 max_seq_length = 128
-per_device_train_batch_size = 16
-per_device_eval_batch_size = 16
+per_device_train_batch_size = 32
+per_device_eval_batch_size = 32
 learning_rate = '5e-5'
 warmup_steps = 0
 weight_decay = 0.1
