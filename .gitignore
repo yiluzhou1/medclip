@@ -3,3 +3,4 @@
 snapshots/*
 /*.ipynb
 Experiments/
+.ipynb_checkpoints/
