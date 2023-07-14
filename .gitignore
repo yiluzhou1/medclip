@@ -5,3 +5,4 @@ snapshots/*
 Experiments/
 .ipynb_checkpoints/
 *.pkl
+*.msgpack

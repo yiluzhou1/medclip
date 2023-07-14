@@ -565,7 +565,7 @@ def main():
             model.save_pretrained(
                 training_args.output_dir,
                 params=params,
-                push_to_hub=training_args.push_to_hub,
+                push_to_hub= False, #training_args.push_to_hub
                 commit_message=f"Saving weights and logs of epoch {epoch+1}",
             )
 
