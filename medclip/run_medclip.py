@@ -87,6 +87,7 @@ class ModelArguments:
         },
     )
     vision_model_name_or_path: str = field(
+        default='clip-vit-base-patch32',
         metadata={
             "help": "The vision model checkpoint for weights initialization."
             "Don't set if you want to train a model from scratch."
