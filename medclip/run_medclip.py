@@ -50,7 +50,7 @@ from flax.jax_utils import unreplicate
 from flax.training import train_state
 from flax.training.common_utils import get_metrics, shard, shard_prng_key
 from transformers import AutoTokenizer, HfArgumentParser, TrainingArguments, is_tensorboard_available, set_seed
-sys.path.append('../')
+sys.path.append('./')
 from medclip.modeling_hybrid_clip import FlaxHybridCLIP
 
 import warnings
@@ -116,6 +116,9 @@ class ModelArguments:
             "help": "Floating-point format in which the model weights should be initialized and trained. Choose one of `[float32, float16, bfloat16]`."
         },
     )
+    projection_dim: Optional[int] = field(
+        default=512, metadata={"help": "projection_dim=512 for openai/clip-vit-base-patch32, projection_dim=768 for openai/clip-vit-large-patch14-336"}
+    )
 
 
 @dataclass
@@ -163,12 +166,7 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
-    gradient_accumulation_steps: Optional[int] = field(
-        default=1,
-        metadata={
-            "help": "gradient accumulation steps for training large models"
-        },
-    )
+
 
     def __post_init__(self):
         if self.train_file is None and self.validation_file is None:
@@ -462,6 +460,10 @@ def main():
         eps=training_args.adam_epsilon,
         weight_decay=training_args.weight_decay,
     )
+    
+    if training_args.gradient_accumulation_steps > 1:
+        # ref: https://huggingface.co/flax-community/t5-base-dutch/blob/main/run_t5_mlm_flax.py
+        adamw = optax.MultiSteps(adamw, training_args.gradient_accumulation_steps)
 
     # Setup train state
     state = TrainState.create(apply_fn=model.__call__, params=model.params, tx=adamw, dropout_rng=dropout_rng)
@@ -477,7 +479,7 @@ def main():
         return loss
 
     # Define gradient update step fn
-    def train_step(state, batch, grad_accum):
+    def train_step(state, batch):
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
         def compute_loss(params):
@@ -489,15 +491,11 @@ def main():
         loss, grad = grad_fn(state.params)
         grad = jax.lax.pmean(grad, "batch")
 
-        # Accumulate gradients
-        grad_accum = jax.tree_multimap(lambda x, y: x + y, grad_accum, grad)
-
-        new_state = state
-        # new_state = state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng)
+        new_state = state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng)
         metrics = {"loss": loss, "learning_rate": linear_decay_lr_schedule_fn(state.step)}
         metrics = jax.lax.pmean(metrics, axis_name="batch")
 
-        return new_state, metrics, grad_accum, new_dropout_rng
+        return new_state, metrics
 
     # Define eval fn
     def eval_step(params, batch):
@@ -516,10 +514,6 @@ def main():
     # Replicate the train state on each device
     state = state.replicate()
     
-    # Initialize grad_accum
-    grad_accum = jax.tree_map(lambda x: jnp.zeros_like(x), state.params)
-    grad_accum = grad_accum.replicate()
-
     logger.info("***** Running training *****")
     logger.info(f"  Num examples = {len(train_dataset)}")
     logger.info(f"  Num Epochs = {num_epochs}")
@@ -539,21 +533,18 @@ def main():
         # Create sampling rng
         rng, input_rng = jax.random.split(rng)
         train_metrics = []
-
         steps_per_epoch = len(train_dataset) // train_batch_size
         train_step_progress_bar = tqdm(total=steps_per_epoch, desc="Training...", position=1, leave=False)
         # train
-        # for batch in train_loader:
-        for idx, batch in enumerate(train_loader):
+        for batch in train_loader:
             batch = shard(batch)
-            # state, train_metric = p_train_step(state, batch)
-            state, train_metric, grad_accum, new_dropout_rng = p_train_step(state, batch, grad_accum)
+            state, train_metric = p_train_step(state, batch)
             train_metrics.append(train_metric)
 
             # Perform optimization step only after every training_args.gradient_accumulation_steps
-            if ((idx + 1) % training_args.gradient_accumulation_steps == 0) or (idx + 1 == len(train_loader)):
-                state = state.apply_gradients(grads=grad_accum, dropout_rng=new_dropout_rng)
-                grad_accum = jax.tree_map(lambda x: jnp.zeros_like(x), grad_accum)
+            # if ((idx + 1) % training_args.gradient_accumulation_steps == 0) or (idx + 1 == len(train_loader)):
+            #     state = state.apply_gradients(grads=grad_accum, dropout_rng=new_dropout_rng)
+            #     grad_accum = jax.tree_map(lambda x: jnp.zeros_like(x), grad_accum)
 
             train_step_progress_bar.update(1)
 

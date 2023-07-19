@@ -6,11 +6,13 @@ python ./medclip/run_medclip.py \
     --train_file="./Experiments/roco-dataset/train_dataset.json" \
     --validation_file="./Experiments/roco-dataset/validation_dataset.json" \
     --do_train --do_eval \
-    --num_train_epochs= 1 --max_seq_length 128 \
-    --per_device_train_batch_size 64 \
-    --per_device_eval_batch_size 64 \
+    --num_train_epochs 1 \
+    --max_seq_length 128 \
+    --per_device_train_batch_size 6 \
+    --per_device_eval_batch_size 6 \
     --learning_rate="1e-6" --warmup_steps="0" --weight_decay 0.1 \
     --overwrite_output_dir \
     --preprocessing_num_workers 4 \
-    --gradient_accumulation_steps 4
+    --gradient_accumulation_steps 16 \
+    --gradient_checkpointing
 #    --push_to_hub

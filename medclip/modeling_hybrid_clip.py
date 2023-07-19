@@ -406,10 +406,12 @@ class FlaxHybridCLIP(FlaxPreTrainedModel):
         # instantiate config with corresponding kwargs
         dtype = kwargs.pop("dtype", jnp.float32)
         config = HybridCLIPConfig.from_text_vision_configs(text_model.config, vision_model.config, **kwargs)
-
+        if vision_model_name_or_path == 'openai/clip-vit-large-patch14-336':
+            config.projection_dim = 768
+        else:
+            config.projection_dim = 512
         # init model
         model = cls(config, *model_args, dtype=dtype, **kwargs)
-
         if vision_config.model_type == "clip":
             model.params["vision_model"]["vision_model"] = vision_model.params["vision_model"]
             model.params["visual_projection"]["kernel"] = vision_model.params["visual_projection"]["kernel"]
