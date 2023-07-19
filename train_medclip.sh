@@ -11,5 +11,6 @@ python ./medclip/run_medclip.py \
     --per_device_eval_batch_size 64 \
     --learning_rate="1e-6" --warmup_steps="0" --weight_decay 0.1 \
     --overwrite_output_dir \
-    --preprocessing_num_workers 4
+    --preprocessing_num_workers 4 \
+    --gradient_accumulation_steps 4
 #    --push_to_hub
