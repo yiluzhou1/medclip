@@ -291,6 +291,17 @@ def create_learning_rate_fn(
     schedule_fn = optax.join_schedules(schedules=[warmup_fn, decay_fn], boundaries=[num_warmup_steps])
     return schedule_fn
 
+def get_next_log_folder_path(base_folder):
+    """
+    001, 002, 003, etc...
+    """
+    i = 1
+    while True:
+        next_folder = os.path.join(base_folder, f'{i:03}')
+        if not os.path.exists(next_folder):
+            os.makedirs(next_folder)
+            return next_folder
+        i += 1
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
@@ -301,14 +312,17 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    output_dir = get_next_log_folder_path(training_args.output_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     if (
-        os.path.exists(training_args.output_dir)
-        and os.listdir(training_args.output_dir)
+        os.path.exists(output_dir)
+        and os.listdir(output_dir)
         and training_args.do_train
         and not training_args.overwrite_output_dir
     ):
         raise ValueError(
-            f"Output directory ({training_args.output_dir}) already exists and is not empty."
+            f"Output directory ({output_dir}) already exists and is not empty."
             "Use --overwrite_output_dir to overcome."
         )
 
@@ -419,7 +433,7 @@ def main():
 
     # Enable tensorboard only on the master node
     if has_tensorboard and jax.process_index() == 0:
-        summary_writer = SummaryWriter(log_dir=Path(training_args.output_dir).joinpath("logs").as_posix())
+        summary_writer = SummaryWriter(log_dir=Path(output_dir).joinpath("logs").as_posix())
 
     # Initialize our training
     rng = jax.random.PRNGKey(training_args.seed)
@@ -560,11 +574,13 @@ def main():
             cur_step = epoch * (len(train_dataset) // train_batch_size)
             write_metric(summary_writer, train_metrics, eval_metrics, train_time, cur_step)
 
-        # save checkpoint after each epoch and push checkpoint to the hub
+        # save every checkpoint after each epoch
         if jax.process_index() == 0:
             params = jax.device_get(unreplicate(state.params))
+            msgpack_file = f"epoch_{epoch:03d}.msgpack"
             model.save_pretrained(
-                training_args.output_dir,
+                output_dir,
+                msgpack_file,
                 params=params,
                 push_to_hub= False, #training_args.push_to_hub
                 commit_message=f"Saving weights and logs of epoch {epoch+1}",
