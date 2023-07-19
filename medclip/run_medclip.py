@@ -163,6 +163,12 @@ class DataTrainingArguments:
         default=None,
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
+    gradient_accumulation_steps: Optional[int] = field(
+        default=1,
+        metadata={
+            "help": "gradient accumulation steps for training large models"
+        },
+    )
 
     def __post_init__(self):
         if self.train_file is None and self.validation_file is None:
@@ -471,7 +477,7 @@ def main():
         return loss
 
     # Define gradient update step fn
-    def train_step(state, batch):
+    def train_step(state, batch, grad_accum):
         dropout_rng, new_dropout_rng = jax.random.split(state.dropout_rng)
 
         def compute_loss(params):
@@ -483,12 +489,15 @@ def main():
         loss, grad = grad_fn(state.params)
         grad = jax.lax.pmean(grad, "batch")
 
-        new_state = state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng)
+        # Accumulate gradients
+        grad_accum = jax.tree_multimap(lambda x, y: x + y, grad_accum, grad)
 
+        new_state = state
+        # new_state = state.apply_gradients(grads=grad, dropout_rng=new_dropout_rng)
         metrics = {"loss": loss, "learning_rate": linear_decay_lr_schedule_fn(state.step)}
         metrics = jax.lax.pmean(metrics, axis_name="batch")
 
-        return new_state, metrics
+        return new_state, metrics, grad_accum, new_dropout_rng
 
     # Define eval fn
     def eval_step(params, batch):
@@ -506,6 +515,10 @@ def main():
 
     # Replicate the train state on each device
     state = state.replicate()
+    
+    # Initialize grad_accum
+    grad_accum = jax.tree_map(lambda x: jnp.zeros_like(x), state.params)
+    grad_accum = grad_accum.replicate()
 
     logger.info("***** Running training *****")
     logger.info(f"  Num examples = {len(train_dataset)}")
@@ -530,10 +543,17 @@ def main():
         steps_per_epoch = len(train_dataset) // train_batch_size
         train_step_progress_bar = tqdm(total=steps_per_epoch, desc="Training...", position=1, leave=False)
         # train
-        for batch in train_loader:
+        # for batch in train_loader:
+        for idx, batch in enumerate(train_loader):
             batch = shard(batch)
-            state, train_metric = p_train_step(state, batch)
+            # state, train_metric = p_train_step(state, batch)
+            state, train_metric, grad_accum, new_dropout_rng = p_train_step(state, batch, grad_accum)
             train_metrics.append(train_metric)
+
+            # Perform optimization step only after every training_args.gradient_accumulation_steps
+            if ((idx + 1) % training_args.gradient_accumulation_steps == 0) or (idx + 1 == len(train_loader)):
+                state = state.apply_gradients(grads=grad_accum, dropout_rng=new_dropout_rng)
+                grad_accum = jax.tree_map(lambda x: jnp.zeros_like(x), grad_accum)
 
             train_step_progress_bar.update(1)
 
