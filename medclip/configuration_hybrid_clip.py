@@ -81,7 +81,6 @@ class HybridCLIPConfig(PretrainedConfig):
             self.vision_config = CLIPVisionConfig(**vision_config)
         else:
             self.vision_config = AutoConfig.for_model(vision_model_type, **vision_config)
-
         self.projection_dim = projection_dim
         self.initializer_factor = 1.0
 

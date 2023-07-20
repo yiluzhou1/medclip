@@ -81,11 +81,16 @@ class ModelArguments:
     """
 
     text_model_name_or_path: str = field(
+        default=None,
         metadata={
             "help": "The text model checkpoint for weights initialization."
             "Don't set if you want to train a model from scratch."
         },
     )
+    run_from_checkpoint: Optional[str] = field(
+        default=None,
+        metadata={"help": "run_from_checkpoint"},
+    )    
     vision_model_name_or_path: str = field(
         default='clip-vit-base-patch32',
         metadata={
@@ -360,14 +365,17 @@ def main():
             "You can do it from another script, save it, and load it from here, using --tokenizer_name."
         )
 
-    model = FlaxHybridCLIP.from_text_vision_pretrained(
-        model_args.text_model_name_or_path,
-        model_args.vision_model_name_or_path,
-        seed=training_args.seed,
-        dtype=getattr(jnp, model_args.dtype),
-        text_from_pt=model_args.from_pt,
-        vision_from_pt=model_args.from_pt,
-    )
+    if model_args.run_from_checkpoint is not None:
+        model = FlaxHybridCLIP.from_pretrained(model_args.run_from_checkpoint)
+    else:
+        model = FlaxHybridCLIP.from_text_vision_pretrained(
+            model_args.text_model_name_or_path,
+            model_args.vision_model_name_or_path,
+            seed=training_args.seed,
+            dtype=getattr(jnp, model_args.dtype),
+            text_from_pt=model_args.from_pt,
+            vision_from_pt=model_args.from_pt,
+        )
     config = model.config
     # set seed for torch dataloaders
     set_seed(training_args.seed)

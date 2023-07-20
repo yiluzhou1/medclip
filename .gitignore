@@ -6,3 +6,5 @@ Experiments/
 .ipynb_checkpoints/
 *.pkl
 *.msgpack
+python.sh
+
