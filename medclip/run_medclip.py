@@ -596,7 +596,7 @@ def main():
         # save every checkpoint after each epoch
         if jax.process_index() == 0:
             params = jax.device_get(unreplicate(state.params))
-            msgpack_file = f"epoch_{epoch:03d}.msgpack"
+            msgpack_file = f"epoch_{(epoch+1):03d}.msgpack"
             model.save_pretrained(
                 output_dir,
                 msgpack_file,
