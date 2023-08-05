@@ -597,13 +597,14 @@ def main():
         if jax.process_index() == 0:
             params = jax.device_get(unreplicate(state.params))
             msgpack_file = f"epoch_{(epoch+1):03d}.msgpack"
-            model.save_pretrained(
-                output_dir,
-                msgpack_file,
-                params=params,
-                push_to_hub= False, #training_args.push_to_hub
-                commit_message=f"Saving weights and logs of epoch {epoch+1}",
-            )
+            if (epoch+1)%2 ==0: #save pt every 2 epochs
+                model.save_pretrained(
+                    output_dir,
+                    msgpack_file,
+                    params=params,
+                    push_to_hub= False, #training_args.push_to_hub
+                    commit_message=f"Saving weights and logs of epoch {epoch+1}",
+                )
 
 
 if __name__ == "__main__":
