@@ -597,7 +597,7 @@ def main():
         if jax.process_index() == 0:
             params = jax.device_get(unreplicate(state.params))
             msgpack_file = f"epoch_{(epoch+1):03d}.msgpack"
-            if (epoch+1)%2 ==0: #save pt every 2 epochs
+            if (epoch+1)%3 ==0: #save pt every 3 epochs
                 model.save_pretrained(
                     output_dir,
                     msgpack_file,
